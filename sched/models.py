@@ -3,8 +3,7 @@ from sqlalchemy import Column, ForeignKey
 from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.ext.declarative import declarative_base
-from werkzeug import check_password_hash, generate_password_hash
-
+from werkzeug.security import generate_password_hash, check_password_hash
 
 Base = declarative_base()
 
