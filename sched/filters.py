@@ -1,5 +1,7 @@
-from jinja2 import Markup, evalcontextfilter, escape
-
+from jinja2.utils import markupsafe
+import re
+from jinja2 import pass_eval_context
+from markupsafe import Markup, escape
 
 def init_app(app):
     app.jinja_env.filters['date'] = do_date
@@ -8,7 +10,7 @@ def init_app(app):
 
     # The nl2br filter uses the Jinja environment's context to determine
     # whether to autoescape
-    app.jinja_env.filters['nl2br'] = evalcontextfilter(do_nl2br)
+    app.jinja_env.filters['nl2br'] = nl2br
 
 
 def do_datetime(dt, format=None):
@@ -84,5 +86,21 @@ def one_many(number, str_duration):
 def do_nl2br(context, value):
     formatted = u'<br />'.join(escape(value).split('\n'))
     if context.autoescape:
-        formatted = Markup(formatted)
+        formatted = markupsafe.Markup(formatted)
     return formatted
+
+
+
+@pass_eval_context
+def nl2br(eval_ctx, value):
+    br = "<br>\n"
+
+    if eval_ctx.autoescape:
+        value = escape(value)
+        br = Markup(br)
+
+    result = "\n\n".join(
+        f"<p>{br.join(p.splitlines())}<\p>"
+        for p in re.split(r"(?:\r\n|\r(?!\n)|\n){2,}", value)
+    )
+    return Markup(result) if eval_ctx.autoescape else result
